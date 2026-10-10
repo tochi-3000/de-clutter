@@ -39,7 +39,7 @@ Build mode: fast
   Learner check: Verify that dry-run mode simulates matches without trashing, and live mode tags and trashes in chunks.
   Commit: `Add execution engine with watchdog chunker and batch trashing`
 
-- [ ] **4. Deterministic 1-Click Rollback Engine (RollbackManager.js)**
+- [x] **4. Deterministic 1-Click Rollback Engine (RollbackManager.js)**
   Becomes usable: 1-Click disaster recovery that queries all threads in Gmail Trash tagged with `Declutter/Trashed-<RunID>`, restores them to the inbox via `GmailApp.moveThreadsFromTrash(threads)`, deletes the session label, and logs `RESTORED`.
   Why now: Completes the two-way safety loop before building user-facing UI controls.
   PRD ref: `prd.md > Features and Behavior > 1-Click Disaster Recovery (Undo Last Run)`, `prd.md > States and Boundaries > Undo Without Prior Run`
