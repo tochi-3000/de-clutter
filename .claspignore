@@ -1,0 +1,14 @@
+# Ignore everything by default
+**/**
+
+# Allow only production Apps Script files
+!appsscript.json
+!Code.js
+!Config.js
+!LockManager.js
+!QueryCompiler.js
+!ExecutionEngine.js
+!RollbackManager.js
+!SheetStore.js
+!TriggerManager.js
+!Sidebar.html
