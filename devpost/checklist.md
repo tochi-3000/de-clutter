@@ -62,23 +62,23 @@ Build mode: fast
 ## Hands-on Checkpoints
 
 - [x] Early usable behavior explored — Slice 3 (Dry-Run & Batch Execution Engine)
-- [ ] Final kick-the-tires exploration and feedback completed — Slice 5 (Complete Sidebar & Rollback Integration)
+- [x] Final kick-the-tires exploration and feedback completed — Slice 5 (Complete Sidebar & Rollback Integration)
 
 ## Final Review
 
-- [ ] Final review complete — feedback resolved and learner confirms ready to ship
+- [x] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
 
-- [ ] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
-- [ ] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
-- [ ] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
+- [x] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
+- [x] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
+- [x] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
-Activity and evidence: [to be filled upon completion]
-Route and stops: [to be filled upon completion]
-Edit outcome: [to be filled upon completion]
-Reflection: [to be filled upon completion]
-Activity mode: [to be filled upon completion]
+Activity and evidence: Focused alternative investigating Google Apps Script hoisting and alphabetical file evaluation order; resolved via lazy runtime getters. Verified with 32 automated unit tests and live Google Sheet execution.
+Route and stops: Stop 1: `QueryCompiler.js` (`compileRule`); Stop 2: `ExecutionEngine.js` (`execute`) & `LockManager.js`; Stop 3: `RollbackManager.js` (`undoLastRun`).
+Edit outcome: Added `script.container.ui` scope to `appsscript.json`; added zero-custody privacy explainer to `SheetStore.js` (`QuickStart`), `Sidebar.html`, and `README.md`; verified live in Google Sheet.
+Reflection: Reusable practice: Lazy module resolution in flat global runtimes to eliminate load-order bugs.
+Activity mode: Focused alternative based on real project debugging and live Apps Script verification.
 
 ## Revisions
 
