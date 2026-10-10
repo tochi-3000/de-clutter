@@ -218,3 +218,8 @@ c:\Users\HP\de-clutter\
 - **Learner Uncertainty Clarified:**
   - Clarified why container-bound Google Apps Script completely bypasses Google's restricted OAuth scope CASA verification audits ($15k–$75k) and eliminates third-party token custody.
 - **Open Issues:** None. Ready for `5-build` step planning and implementation.
+
+## Sharing and Submission Links
+- **Public GitHub Repository:** https://github.com/tochi-3000/de-clutter
+- **1-Click Clone Link:** https://docs.google.com/spreadsheets/d/1X0u6iFTzWtK58vkWq4c3UGVNRRZ-6AFyn7JhTuk3lgM/copy
+- **Demo Video URL:** *(Pending upload)*
