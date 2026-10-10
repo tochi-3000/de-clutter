@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --primary: #1a73e8;
+      --primary-hover: #1557b0;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-red-hover: #dc2626;
+      --input-bg: #ffffff;
+      --font: "Google Sans", Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --card-bg: #1e293b;
+        --border: #334155;
+        --text: #f8fafc;
+        --text-muted: #94a3b8;
+        --primary: #38bdf8;
+        --primary-hover: #0ea5e9;
+        --input-bg: #0f172a;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 12px;
+    }
+
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      text-transform: uppercase;
+    }
+    .pill-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+    .pill-amber { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+    .pill-red { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .stat-val { font-weight: 600; color: var(--text); }
+
+    .form-group {
+      margin-bottom: 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 12px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+
+    .btn-danger {
+      background: var(--accent-red);
+      color: #ffffff;
+    }
+    .btn-danger:hover:not(:disabled) { background: var(--accent-red-hover); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover:not(:disabled) {
+      background: rgba(0,0,0,0.03);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    /* Banners & Alerts */
+    .banner {
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      margin-bottom: 10px;
+      display: none;
+    }
+    .banner-info { background: rgba(56, 189, 248, 0.15); border: 1px solid var(--primary); color: var(--text); }
+    .banner-warn { background: rgba(245, 158, 11, 0.15); border: 1px solid var(--accent-amber); color: var(--text); }
+    .banner-danger { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--accent-red); color: var(--text); }
+    .banner-success { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-green); color: var(--text); }
+
+    .recovery-card {
+      border-left: 3px solid var(--accent-red);
+    }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <div class="logo-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12z"/>
+      </svg>
+      Declutter
+    </div>
+    <span id="engineBadge" class="pill pill-green">ACTIVE</span>
+  </div>
+
+  <!-- Notification Banner -->
+  <div id="banner" class="banner banner-info"></div>
+
+  <!-- CARD 1: ENGINE STATUS & MASTER ACTION -->
+  <div class="card">
+    <div class="card-title">
+      <span>Engine Control</span>
+      <span style="font-size: 11px; color: var(--text-muted);">2:00 AM Daily</span>
+    </div>
+    <div class="stat-row">
+      <span>Active Rules:</span>
+      <span id="activeRuleCount" class="stat-val">Loading...</span>
+    </div>
+    <label class="checkbox-row">
+      <input type="checkbox" id="chkDryRunAll">
+      <span>Dry Run All (Preview only)</span>
+    </label>
+    <button id="btnRunNow" class="btn btn-primary" onclick="handleRunDeclutter()">Run Declutter Now</button>
+  </div>
+
+  <!-- CARD 2: QUICK RULE BUILDER -->
+  <div class="card">
+    <div class="card-title">
+      <span>Quick Rule Builder</span>
+    </div>
+    <div class="form-group">
+      <label for="inputSender">Target Sender Pattern</label>
+      <input type="text" id="inputSender" placeholder="@marketing.store.com or user@bank.com">
+    </div>
+    <div class="form-group">
+      <label for="inputKeywords">Keywords (Quoted phrases preserved)</label>
+      <input type="text" id="inputKeywords" placeholder='"verification code" OR "otp"'>
+    </div>
+    <div class="form-group">
+      <label for="inputRetention">Retention Period (Days)</label>
+      <input type="number" id="inputRetention" value="7" min="1">
+    </div>
+    <label class="checkbox-row">
+      <input type="checkbox" id="chkProtectStarred" checked>
+      <span>Protect Starred Emails</span>
+    </label>
+    <div class="btn-row">
+      <button id="btnTestRule" class="btn btn-outline" style="flex:1;" onclick="handleTestRule()">Test (Dry Run)</button>
+      <button id="btnSaveRule" class="btn btn-primary" style="flex:1;" onclick="handleSaveRule()">Save Rule</button>
+    </div>
+  </div>
+
+  <!-- CARD 3: DISASTER RECOVERY (UNDO) -->
+  <div class="card recovery-card">
+    <div class="card-title" style="color: var(--accent-red);">
+      <span>Disaster Recovery</span>
+      <span class="pill pill-red">1-CLICK UNDO</span>
+    </div>
+    <div class="stat-row">
+      <span>Latest Run:</span>
+      <span id="latestRunId" class="stat-val">None</span>
+    </div>
+    <div class="stat-row">
+      <span>Affected Threads:</span>
+      <span id="latestThreadCount" class="stat-val">0</span>
+    </div>
+    <button id="btnUndo" class="btn btn-danger" style="margin-top: 6px;" onclick="handleUndo()">Undo Last Run</button>
+  </div>
+
+  <script>
+    /**
+     * Promise-wrapped client RPC helper for google.script.run
+     */
+    function runRpc(fnName, ...args) {
+      return new Promise((resolve, reject) => {
+        if (typeof google === 'undefined' || !google.script || !google.script.run) {
+          // Mock mode for local browser inspection
+          setTimeout(() => {
+            if (fnName === 'apiGetEngineStatus') {
+              resolve({ success: true, activeRuleCount: 2, latestRun: { runId: 'RUN-DEMO-001', threadCount: 45 } });
+            } else if (fnName === 'apiRunDeclutter') {
+              resolve({ success: true, result: { runId: 'RUN-DEMO-002', totalMatched: 14, totalTrashed: 14, durationMs: 1200 } });
+            } else if (fnName === 'apiUndoLastRun') {
+              resolve({ success: true, result: { restoredCount: 14, message: 'Successfully restored 14 threads to Inbox.' } });
+            } else {
+              resolve({ success: true });
+            }
+          }, 300);
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(reject)[fnName](...args);
+      });
+    }
+
+    function showBanner(message, type = 'info') {
+      const banner = document.getElementById('banner');
+      banner.textContent = message;
+      banner.className = `banner banner-${type}`;
+      banner.style.display = 'block';
+    }
+
+    function hideBanner() {
+      document.getElementById('banner').style.display = 'none';
+    }
+
+    function setBusy(isBusy, busyText = 'Processing...') {
+      const buttons = document.querySelectorAll('button');
+      buttons.forEach(btn => btn.disabled = isBusy);
+      if (isBusy) {
+        showBanner(busyText, 'info');
+      }
+    }
+
+    async function loadStatus() {
+      try {
+        const res = await runRpc('apiGetEngineStatus');
+        if (res.success) {
+          document.getElementById('activeRuleCount').textContent = res.activeRuleCount;
+          if (res.latestRun && res.latestRun.runId) {
+            document.getElementById('latestRunId').textContent = res.latestRun.runId;
+            document.getElementById('latestThreadCount').textContent = res.latestRun.threadCount;
+          } else {
+            document.getElementById('latestRunId').textContent = 'None';
+            document.getElementById('latestThreadCount').textContent = '0';
+          }
+        }
+      } catch (err) {
+        showBanner('Failed to load status: ' + err.message, 'danger');
+      }
+    }
+
+    async function handleRunDeclutter() {
+      const dryRunOverride = document.getElementById('chkDryRunAll').checked;
+      setBusy(true, dryRunOverride ? 'Simulating dry run...' : 'Running live Declutter batch...');
+
+      try {
+        const res = await runRpc('apiRunDeclutter', { dryRunOverride: dryRunOverride });
+        setBusy(false);
+
+        if (res.success && res.result) {
+          const d = res.result;
+          if (d.totalMatched === 0) {
+            showBanner('No matching emails found. Please adjust filters and try again.', 'warn');
+          } else if (dryRunOverride) {
+            showBanner(`Dry Run: ${d.totalMatched} threads matched (simulated WOULD_TRASH). Zero threads modified.`, 'amber');
+          } else {
+            showBanner(`Live Run Complete: ${d.totalTrashed} threads moved to Trash (tagged ${d.runId}).`, 'success');
+          }
+          await loadStatus();
+        } else {
+          showBanner(res.error || 'Execution encountered an issue.', 'danger');
+        }
+      } catch (err) {
+        setBusy(false);
+        showBanner(err.message || 'Execution failed.', 'danger');
+      }
+    }
+
+    async function handleSaveRule() {
+      const sender = document.getElementById('inputSender').value.trim();
+      const keywords = document.getElementById('inputKeywords').value.trim();
+      const retention = parseInt(document.getElementById('inputRetention').value, 10);
+      const protectStarred = document.getElementById('chkProtectStarred').checked;
+
+      if (!sender) {
+        showBanner('Sender pattern cannot be empty.', 'danger');
+        return;
+      }
+      if (isNaN(retention) || retention < 1) {
+        showBanner('Retention period must be at least 1 day.', 'danger');
+        return;
+      }
+
+      setBusy(true, 'Saving rule...');
+      try {
+        const res = await runRpc('apiSaveRule', {
+          SenderPattern: sender,
+          Keywords: keywords,
+          RetentionDays: retention,
+          ProtectStarred: protectStarred,
+          DryRun: false
+        });
+        setBusy(false);
+        if (res.success) {
+          showBanner(`Rule ${res.ruleId} saved successfully.`, 'success');
+          document.getElementById('inputSender').value = '';
+          document.getElementById('inputKeywords').value = '';
+          await loadStatus();
+        } else {
+          showBanner(res.error || 'Failed to save rule.', 'danger');
+        }
+      } catch (err) {
+        setBusy(false);
+        showBanner(err.message, 'danger');
+      }
+    }
+
+    async function handleTestRule() {
+      const sender = document.getElementById('inputSender').value.trim();
+      const keywords = document.getElementById('inputKeywords').value.trim();
+      const retention = parseInt(document.getElementById('inputRetention').value, 10);
+      const protectStarred = document.getElementById('chkProtectStarred').checked;
+
+      if (!sender) {
+        showBanner('Sender pattern cannot be empty.', 'danger');
+        return;
+      }
+
+      setBusy(true, 'Testing rule (Dry Run)...');
+      try {
+        // Temporarily save as DryRun rule or run simulated query
+        const saveRes = await runRpc('apiSaveRule', {
+          SenderPattern: sender,
+          Keywords: keywords,
+          RetentionDays: retention,
+          ProtectStarred: protectStarred,
+          DryRun: true
+        });
+
+        if (saveRes.success) {
+          const runRes = await runRpc('apiRunDeclutter', { dryRunOverride: true });
+          setBusy(false);
+          if (runRes.success && runRes.result) {
+            const count = runRes.result.totalMatched;
+            if (count === 0) {
+              showBanner('No matching emails found. Please adjust filters and try again.', 'warn');
+            } else {
+              showBanner(`Dry Run Test: ${count} matching threads found. Checked into Logs sheet.`, 'success');
+            }
+          }
+        }
+      } catch (err) {
+        setBusy(false);
+        showBanner(err.message, 'danger');
+      }
+    }
+
+    async function handleUndo() {
+      setBusy(true, 'Restoring threads from last run...');
+      try {
+        const res = await runRpc('apiUndoLastRun');
+        setBusy(false);
+        if (res.success) {
+          const d = res.result || res;
+          showBanner(d.message || `Successfully restored ${d.restoredCount} threads to Inbox.`, 'success');
+          await loadStatus();
+        } else {
+          showBanner(res.message || res.error || 'No existing run', 'danger');
+        }
+      } catch (err) {
+        setBusy(false);
+        showBanner(err.message || 'Undo failed.', 'danger');
+      }
+    }
+
+    // Initialize status on load
+    window.addEventListener('DOMContentLoaded', loadStatus);
+  </script>
+</body>
+</html>
