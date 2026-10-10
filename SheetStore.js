@@ -59,8 +59,9 @@ var SheetStore = (function () {
     if (!qsSheet) {
       qsSheet = ss.insertSheet(_Config.SHEET_NAMES.QUICKSTART);
     }
-    // Populate or refresh QuickStart guide content
-    if (qsSheet.getLastRow() <= 10) {
+    // Populate or refresh QuickStart guide content if missing the Zero-Custody Privacy guide
+    const headerVal = qsSheet.getLastRow() > 0 ? String(qsSheet.getRange(1, 1).getValue() || '') : '';
+    if (!headerVal.includes('Zero-Custody Privacy')) {
       if (qsSheet.clear) qsSheet.clear();
       qsSheet.appendRow(['Declutter — Zero-Custody Privacy & Onboarding Guide']);
       qsSheet.appendRow(['']);

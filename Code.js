@@ -17,6 +17,7 @@ function onOpen() {
     .addItem('Undo Last Run', 'menuUndoLastRun')
     .addSeparator()
     .addItem('Setup / Reset Daily Automation', 'menuSetupDailyAutomation')
+    .addItem('Refresh QuickStart Guide', 'menuRefreshQuickStart')
     .addToUi();
 }
 
@@ -109,6 +110,20 @@ function menuSetupDailyAutomation() {
   );
 }
 
+/**
+ * Menu action: Forces an immediate refresh of the QuickStart & Privacy Guide tab.
+ */
+function menuRefreshQuickStart() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const qs = ss.getSheetByName(Config.SHEET_NAMES.QUICKSTART);
+  if (qs && qs.clear) {
+    qs.clear();
+  }
+  SheetStore.initSheets();
+  ui.alert('QuickStart Guide', 'The QuickStart & Privacy Guide has been refreshed with the latest documentation.', ui.ButtonSet.OK);
+}
+
 // ============================================================================
 // RPC ENDPOINTS (Invoked from Sidebar.html via google.script.run)
 // ============================================================================
@@ -196,6 +211,7 @@ if (typeof module !== 'undefined' && module.exports) {
     onOpen,
     showSidebar,
     runDeclutterAutomated,
+    menuRefreshQuickStart,
     apiGetEngineStatus,
     apiSaveRule,
     apiRunDeclutter,
