@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Declutter — PRD Interactive Companion</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --primary: #1a73e8;
+      --primary-hover: #1557b0;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --font: "Google Sans", Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --card-bg: #1e293b;
+        --border: #334155;
+        --text: #f8fafc;
+        --text-muted: #94a3b8;
+        --primary: #38bdf8;
+        --primary-hover: #0ea5e9;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(26, 115, 232, 0.12);
+      color: var(--primary);
+      border: 1px solid rgba(26, 115, 232, 0.25);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+    h1 { font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .subtitle { color: var(--text-muted); font-size: 1.1rem; }
+
+    /* Interactive Diagram */
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .section-card h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    .svg-wrapper { width: 100%; overflow-x: auto; text-align: center; }
+
+    /* Interactive Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.75rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Mockup Surface */
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 768px) { .mockup-grid { grid-template-columns: 1fr; } }
+    .sidebar-preview {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+    }
+    .sb-card {
+      background: rgba(0,0,0,0.03);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      .sb-card { background: rgba(255,255,255,0.04); }
+    }
+    .sb-card h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--primary); }
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 0.375rem;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-danger { background: var(--accent-red); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .pill {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .pill-amber { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+    .pill-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+
+    /* State Simulator */
+    .state-box {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid var(--border);
+      background: rgba(0,0,0,0.02);
+    }
+    .state-zero { border-left-color: var(--accent-amber); }
+    .state-undo { border-left-color: var(--accent-red); }
+    .state-lock { border-left-color: var(--primary); }
+
+    /* Criteria List */
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+    }
+    .check-icon { color: var(--accent-green); font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Product Requirements companion</div>
+      <h1>Declutter — PRD Interactive Blueprint</h1>
+      <p class="subtitle">Complete behavioral definition: Gmail-native look and feel, core journeys, state boundaries, and acceptance criteria.</p>
+    </header>
+
+    <!-- User Journey SVG -->
+    <div class="section-card">
+      <h2>The End-to-End User Journey</h2>
+      <div class="svg-wrapper">
+        <svg viewBox="0 0 900 160" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+          <!-- Step 1 -->
+          <rect x="10" y="30" width="160" height="90" rx="8" fill="var(--card-bg)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="90" y="60" fill="var(--primary)" font-size="12" font-weight="700" text-anchor="middle">1. ONBOARDING</text>
+          <text x="90" y="85" fill="var(--text-muted)" font-size="11" text-anchor="middle">Copy Sheet & Authorize</text>
+          <text x="90" y="102" fill="var(--text-muted)" font-size="11" text-anchor="middle">Setup 2 AM Automation</text>
+
+          <!-- Step 2 -->
+          <rect x="250" y="30" width="160" height="90" rx="8" fill="var(--card-bg)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="330" y="60" fill="var(--primary)" font-size="12" font-weight="700" text-anchor="middle">2. RULE SETUP</text>
+          <text x="330" y="85" fill="var(--text-muted)" font-size="11" text-anchor="middle">Define Sender & Quotes</text>
+          <text x="330" y="102" fill="var(--text-muted)" font-size="11" text-anchor="middle">Set Retention Days</text>
+
+          <!-- Step 3 -->
+          <rect x="490" y="30" width="160" height="90" rx="8" fill="var(--card-bg)" stroke="var(--accent-amber)" stroke-width="2"/>
+          <text x="570" y="60" fill="var(--accent-amber)" font-size="12" font-weight="700" text-anchor="middle">3. DRY-RUN TEST</text>
+          <text x="570" y="85" fill="var(--text-muted)" font-size="11" text-anchor="middle">Simulate Query Safety</text>
+          <text x="570" y="102" fill="var(--text-muted)" font-size="11" text-anchor="middle">Audit WOULD_TRASH</text>
+
+          <!-- Step 4 -->
+          <rect x="730" y="30" width="160" height="90" rx="8" fill="var(--card-bg)" stroke="var(--accent-green)" stroke-width="2"/>
+          <text x="810" y="60" fill="var(--accent-green)" font-size="12" font-weight="700" text-anchor="middle">4. BATCH TRASH & UNDO</text>
+          <text x="810" y="85" fill="var(--text-muted)" font-size="11" text-anchor="middle">Tag RunID & Move 50/batch</text>
+          <text x="810" y="102" fill="var(--text-muted)" font-size="11" text-anchor="middle">1-Click Instant Restore</text>
+
+          <!-- Arrows -->
+          <path d="M 170 75 L 250 75" stroke="var(--primary)" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 410 75 L 490 75" stroke="var(--primary)" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 650 75 L 730 75" stroke="var(--accent-green)" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--primary)"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Interactive Tabs -->
+    <div class="section-card">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-sidebar', this)">Sidebar UI (Gmail-Native)</button>
+        <button class="tab-btn" onclick="switchTab('tab-states', this)">Edge & Empty States</button>
+        <button class="tab-btn" onclick="switchTab('tab-criteria', this)">Acceptance Criteria</button>
+        <button class="tab-btn" onclick="switchTab('tab-decisions', this)">Product Decisions</button>
+      </div>
+
+      <!-- TAB 1: SIDEBAR MOCKUP -->
+      <div id="tab-sidebar" class="tab-content active">
+        <div class="mockup-grid">
+          <div class="sidebar-preview">
+            <h2 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--text);">Gmail Control Panel Mockup</h2>
+            
+            <!-- Card 1: Engine Status -->
+            <div class="sb-card">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Engine Status</h3>
+                <span class="pill pill-green">ACTIVE</span>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Active Rules: <strong>3</strong> | Daily Trigger: <strong>2:00 AM</strong></p>
+              <button class="btn btn-primary">Run Declutter Now</button>
+            </div>
+
+            <!-- Card 2: Quick Rule Builder -->
+            <div class="sb-card">
+              <h3>Quick Rule Builder</h3>
+              <div style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                <label style="display:block; color:var(--text-muted);">Sender Pattern</label>
+                <input type="text" value="@notifications.bank.com" style="width: 100%; padding: 0.4rem; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text);">
+              </div>
+              <div style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                <label style="display:block; color:var(--text-muted);">Keywords (Quoted phrases preserved)</label>
+                <input type="text" value='"verification code" OR "otp"' style="width: 100%; padding: 0.4rem; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text);">
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-outline" style="flex:1;">Test (Dry Run)</button>
+                <button class="btn btn-primary" style="flex:1;">Save Rule</button>
+              </div>
+            </div>
+
+            <!-- Card 3: Disaster Recovery -->
+            <div class="sb-card" style="border-left: 4px solid var(--accent-red);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: var(--accent-red);">Disaster Recovery</h3>
+                <span class="pill" style="background: rgba(239, 68, 68, 0.15); color: var(--accent-red);">1-CLICK UNDO</span>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.25rem 0;">Last Run: <strong>RUN-20261010-083000</strong> (142 threads)</p>
+              <button class="btn btn-danger">Undo Last Run</button>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem;">Look and Feel Specifications</h3>
+            <ul style="list-style: none; font-size: 0.95rem; color: var(--text-muted);">
+              <li style="margin-bottom: 0.75rem;"><strong>System-Calibrated Theme:</strong> Auto-detects <code>prefers-color-scheme</code> dark or light mode so the sidebar matches user environment.</li>
+              <li style="margin-bottom: 0.75rem;"><strong>Workspace Integration:</strong> Uses Google Sans and Roboto fonts, clean cards, and Google blue accents so users feel native inside Gmail/Sheets.</li>
+              <li style="margin-bottom: 0.75rem;"><strong>Color Hierarchy:</strong> Blue for primary actions, Emerald for active engine state, Amber for dry runs, and Crimson strictly reserved for trashing and recovery.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: EDGE STATES -->
+      <div id="tab-states" class="tab-content">
+        <div class="state-box state-zero">
+          <strong style="color: var(--accent-amber);">Empty Match State (0 Emails Found)</strong>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">Triggered when a rule or run matches 0 inbox threads.</p>
+          <div style="background: rgba(0,0,0,0.05); padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem; margin-top: 0.5rem;">
+            "No matching emails found. Please adjust filters and try again."
+          </div>
+        </div>
+
+        <div class="state-box state-undo">
+          <strong style="color: var(--accent-red);">Undo Without Prior Run</strong>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">Triggered when user clicks Undo but no prior execution exists (or it was already undone).</p>
+          <div style="background: rgba(0,0,0,0.05); padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem; margin-top: 0.5rem;">
+            "No existing run"
+          </div>
+        </div>
+
+        <div class="state-box state-lock">
+          <strong style="color: var(--primary);">Concurrency Collision Guard</strong>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">Triggered when a manual run collides with the daily scheduled cron trigger.</p>
+          <div style="background: rgba(0,0,0,0.05); padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem; margin-top: 0.5rem;">
+            "Another Declutter process is currently running. Please try again shortly."
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: CRITERIA -->
+      <div id="tab-criteria" class="tab-content">
+        <div class="check-item"><span class="check-icon">&#10003;</span> <div><strong>Query Injection Guard:</strong> Phrases like <code>"login code"</code> preserved; dangerous characters stripped; query grouped.</div></div>
+        <div class="check-item"><span class="check-icon">&#10003;</span> <div><strong>Dry Run Non-Mutation:</strong> Queries match correctly and log <code>WOULD_TRASH</code> without moving threads.</div></div>
+        <div class="check-item"><span class="check-icon">&#10003;</span> <div><strong>Session Tagging:</strong> Matched threads tagged with <code>Declutter/Trashed-RunID</code> prior to trashing.</div></div>
+        <div class="check-item"><span class="check-icon">&#10003;</span> <div><strong>1-Click Rollback:</strong> Clicking "Undo Last Run" restores all tagged threads from Gmail Trash to Inbox.</div></div>
+        <div class="check-item"><span class="check-icon">&#10003;</span> <div><strong>Threshold Log Rotation:</strong> Sheet automatically prunes 1,000 oldest rows only when row count exceeds 6,000.</div></div>
+      </div>
+
+      <!-- TAB 4: DECISIONS -->
+      <div id="tab-decisions" class="tab-content">
+        <ul style="list-style: none;">
+          <li style="margin-bottom: 0.75rem;"><strong>Zero Token Custody:</strong> Anchored inside Google Sheet container to eliminate CASA security audits and server vulnerabilities.</li>
+          <li style="margin-bottom: 0.75rem;"><strong>Trash vs Hard Delete:</strong> Bypassing <code>remove</code> ensures user emails can always be restored within 30 days.</li>
+          <li style="margin-bottom: 0.75rem;"><strong>Deterministic over AI:</strong> Rules are faster, private, zero cost, and predictable.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(id, btn) {
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>
