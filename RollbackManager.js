@@ -6,9 +6,15 @@
 
 // eslint-disable-next-line no-var
 var RollbackManager = (function () {
-  const _Config = (typeof Config !== 'undefined') ? Config : (typeof require !== 'undefined' ? require('./Config.js') : {});
-  const _LockManager = (typeof LockManager !== 'undefined') ? LockManager : (typeof require !== 'undefined' ? require('./LockManager.js') : {});
-  const _SheetStore = (typeof SheetStore !== 'undefined') ? SheetStore : (typeof require !== 'undefined' ? require('./SheetStore.js') : {});
+  function getConfig() {
+    return (typeof Config !== 'undefined') ? Config : (typeof require !== 'undefined' ? require('./Config.js') : {});
+  }
+  function getLockManager() {
+    return (typeof LockManager !== 'undefined') ? LockManager : (typeof require !== 'undefined' ? require('./LockManager.js') : {});
+  }
+  function getSheetStore() {
+    return (typeof SheetStore !== 'undefined') ? SheetStore : (typeof require !== 'undefined' ? require('./SheetStore.js') : {});
+  }
 
   /**
    * Safe wrapper for GmailApp.
@@ -27,6 +33,10 @@ var RollbackManager = (function () {
    * @returns {{ success: boolean, runId?: string, restoredCount?: number, message: string }}
    */
   function undoLastRun(specificRunId) {
+    const _Config = getConfig();
+    const _LockManager = getLockManager();
+    const _SheetStore = getSheetStore();
+
     let runId = specificRunId;
 
     // If RunID is not explicitly provided, fetch the most recent run from Logs

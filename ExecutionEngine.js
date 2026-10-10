@@ -6,10 +6,18 @@
 
 // eslint-disable-next-line no-var
 var ExecutionEngine = (function () {
-  const _Config = (typeof Config !== 'undefined') ? Config : (typeof require !== 'undefined' ? require('./Config.js') : {});
-  const _QueryCompiler = (typeof QueryCompiler !== 'undefined') ? QueryCompiler : (typeof require !== 'undefined' ? require('./QueryCompiler.js') : {});
-  const _SheetStore = (typeof SheetStore !== 'undefined') ? SheetStore : (typeof require !== 'undefined' ? require('./SheetStore.js') : {});
-  const _LockManager = (typeof LockManager !== 'undefined') ? LockManager : (typeof require !== 'undefined' ? require('./LockManager.js') : {});
+  function getConfig() {
+    return (typeof Config !== 'undefined') ? Config : (typeof require !== 'undefined' ? require('./Config.js') : {});
+  }
+  function getQueryCompiler() {
+    return (typeof QueryCompiler !== 'undefined') ? QueryCompiler : (typeof require !== 'undefined' ? require('./QueryCompiler.js') : {});
+  }
+  function getSheetStore() {
+    return (typeof SheetStore !== 'undefined') ? SheetStore : (typeof require !== 'undefined' ? require('./SheetStore.js') : {});
+  }
+  function getLockManager() {
+    return (typeof LockManager !== 'undefined') ? LockManager : (typeof require !== 'undefined' ? require('./LockManager.js') : {});
+  }
 
   /**
    * Generates a unique monotonic RunID (e.g. RUN-20261010-083000-123).
@@ -42,6 +50,11 @@ var ExecutionEngine = (function () {
    * @returns {{ success: boolean, runId?: string, totalMatched?: number, totalTrashed?: number, durationMs?: number, error?: string, contention?: boolean }}
    */
   function execute(options = {}) {
+    const _Config = getConfig();
+    const _QueryCompiler = getQueryCompiler();
+    const _SheetStore = getSheetStore();
+    const _LockManager = getLockManager();
+
     return _LockManager.withLock('ExecutionEngine.execute', () => {
       const startTime = Date.now();
       const runId = generateRunId();

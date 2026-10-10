@@ -6,7 +6,9 @@
 
 // eslint-disable-next-line no-var
 var SheetStore = (function () {
-  const _Config = (typeof Config !== 'undefined') ? Config : (typeof require !== 'undefined' ? require('./Config.js') : {});
+  function getConfig() {
+    return (typeof Config !== 'undefined') ? Config : (typeof require !== 'undefined' ? require('./Config.js') : {});
+  }
   /**
    * Retrieves the active spreadsheet handle.
    * @returns {GoogleAppsScript.Spreadsheet.Spreadsheet|null}
@@ -22,6 +24,7 @@ var SheetStore = (function () {
    * Initializes sheet tabs (Rules, Logs, QuickStart) if they do not exist.
    */
   function initSheets() {
+    const _Config = getConfig();
     const ss = getSpreadsheet();
     if (!ss) return;
 
@@ -71,6 +74,7 @@ var SheetStore = (function () {
    * @returns {{ rules: Array<Object>, errors: Array<string> }}
    */
   function getActiveRules() {
+    const _Config = getConfig();
     const ss = getSpreadsheet();
     if (!ss) return { rules: [], errors: ['Spreadsheet unavailable'] };
 
@@ -137,6 +141,7 @@ var SheetStore = (function () {
    * @returns {{ success: boolean, ruleId: string, error?: string }}
    */
   function saveRule(rule) {
+    const _Config = getConfig();
     const ss = getSpreadsheet();
     if (!ss) return { success: false, ruleId: '', error: 'Spreadsheet unavailable' };
 
@@ -169,6 +174,7 @@ var SheetStore = (function () {
   function flushLogBuffer(logRows) {
     if (!logRows || logRows.length === 0) return 0;
 
+    const _Config = getConfig();
     const ss = getSpreadsheet();
     if (!ss) return 0;
 
@@ -204,6 +210,7 @@ var SheetStore = (function () {
    * Prunes oldest log rows in a single contiguous slice if total rows exceed the rotation threshold.
    */
   function pruneLogsIfNeeded() {
+    const _Config = getConfig();
     const ss = getSpreadsheet();
     if (!ss) return;
 
@@ -228,6 +235,7 @@ var SheetStore = (function () {
    * @returns {{ runId: string|null, timestamp: string|null, threadCount: number, mode: string|null }}
    */
   function getLatestRunMetadata() {
+    const _Config = getConfig();
     const ss = getSpreadsheet();
     if (!ss) return { runId: null, timestamp: null, threadCount: 0, mode: null };
 
