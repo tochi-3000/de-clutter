@@ -61,7 +61,7 @@ Build mode: fast
 
 ## Hands-on Checkpoints
 
-- [ ] Early usable behavior explored — Slice 3 (Dry-Run & Batch Execution Engine)
+- [x] Early usable behavior explored — Slice 3 (Dry-Run & Batch Execution Engine)
 - [ ] Final kick-the-tires exploration and feedback completed — Slice 5 (Complete Sidebar & Rollback Integration)
 
 ## Final Review
