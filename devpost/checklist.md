@@ -9,7 +9,7 @@ Build mode: fast
 
 ## Slices
 
-- [ ] **1. Manifest, Config & Query Compiler with Safety Firewalls**
+- [x] **1. Manifest, Config & Query Compiler with Safety Firewalls**
   Becomes usable: A tested, injection-proof query compiler engine that parses sender patterns, preserves exact quoted phrases (e.g. `"verification code"`), neutralizes operator breakouts, and enforces mandatory safety clauses (`-is:starred -in:trash -in:spam -label:Declutter-Exempt`).
   Why now: Bootstrapping and kernel safety first. If the query compiler leaks operators or unbalances syntax, emails could be misidentified. Testing compilation logic locally proves query safety before touching any mailbox.
   PRD ref: `prd.md > Features and Behavior > Rule Ingestion & Validation`
