@@ -49,7 +49,7 @@ Build mode: fast
   Learner check: Confirm the rollback query logic accurately isolates only threads from the specific run ID and restores them.
   Commit: `Add 1-click rollback disaster recovery engine`
 
-- [ ] **5. Gmail-Native Sidebar GUI & Automation Dispatcher (Sidebar.html, Code.js, TriggerManager.js)**
+- [x] **5. Gmail-Native Sidebar GUI & Automation Dispatcher (Sidebar.html, Code.js, TriggerManager.js)**
   Becomes usable: Complete integrated Google Workspace application: custom `Declutter` spreadsheet menu, 2:00 AM daily clock trigger setup, and responsive Gmail-native sidebar with auto dark/light theme, rule builder, status cards, and Promise-wrapped RPC client.
   Why now: Integrates all backend engines into the user-facing interface, completing the full user journey.
   PRD ref: `prd.md > Screens and Layout > Surface 2 & Surface 3`, `prd.md > Look and Feel`
