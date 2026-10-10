@@ -83,4 +83,5 @@ Activity mode: [to be filled upon completion]
 ## Revisions
 
 - Added `https://www.googleapis.com/auth/script.container.ui` to `appsscript.json` — Google Apps Script requires this scope explicitly to display custom HTML sidebars when explicit `oauthScopes` are defined in the manifest.
+- Resolved Google Apps Script hoisting order conflict — replaced top-level eager closures in `ExecutionEngine.js`, `RollbackManager.js`, and `SheetStore.js` with lazy runtime getters to eliminate undefined module references caused by alphabetical script evaluation.
 
