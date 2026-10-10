@@ -19,7 +19,7 @@ Build mode: fast
   Learner check: Inspect the test run output confirming clean query compilation, phrase preservation, and operator injection neutralization.
   Commit: `Add manifest, config, and hardened query compiler`
 
-- [ ] **2. Concurrency Lock & Spreadsheet Engine (LockManager & SheetStore)**
+- [x] **2. Concurrency Lock & Spreadsheet Engine (LockManager & SheetStore)**
   Becomes usable: Spreadsheet relational storage adapter (`Rules`, `Logs`, `QuickStart`), row validation, single-call batch log flushing (`setValues`), threshold 6,000-row log rotation, and 10-second mutex locking via `LockManager`.
   Why now: The engine requires concurrency safety and atomic sheet persistence before running any live Gmail mutations.
   PRD ref: `prd.md > Screens and Layout > Surface 1: The Google Sheet Data Engine`, `prd.md > States and Boundaries > Concurrency Collision State`
