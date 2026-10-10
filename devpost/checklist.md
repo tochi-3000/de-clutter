@@ -29,7 +29,7 @@ Build mode: fast
   Learner check: Review the sheet schema definitions, validation constraints, and lock contention error handling.
   Commit: `Add concurrency lock manager and batch sheet storage adapter`
 
-- [ ] **3. Execution Engine & Watchdog Chunker (ExecutionEngine.js)**
+- [x] **3. Execution Engine & Watchdog Chunker (ExecutionEngine.js)**
   Becomes usable: Complete dry-run simulation and live batch trashing engine that searches Gmail in 100-thread chunks, enforces the 270s watchdog limit, applies session labels (`Declutter/Trashed-<RunID>`), and moves threads to trash in batches of 50.
   Why now: Delivers the core execution engine and proves the dry-run safety gate before introducing UI and rollback handlers.
   PRD ref: `prd.md > Features and Behavior > Dry-Run Simulation`, `prd.md > Features and Behavior > Batch Trashing & Run Labeling`
