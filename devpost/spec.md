@@ -57,7 +57,7 @@ Implements `prd.md > Look and Feel`.
 ## Components
 
 ### 1. `appsscript.json`
-- Manifest declaring explicit least-privilege OAuth scopes: `gmail.modify`, `spreadsheets`, `script.scriptapp`. Disallows unconstrained cloud scopes.
+- Manifest declaring explicit least-privilege OAuth scopes: `gmail.modify`, `spreadsheets`, `script.scriptapp`, `script.container.ui`. Disallows unconstrained cloud scopes.
 - Ref: `prd.md > Features and Behavior`.
 
 ### 2. `Config.js`

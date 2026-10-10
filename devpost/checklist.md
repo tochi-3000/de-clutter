@@ -82,3 +82,5 @@ Activity mode: [to be filled upon completion]
 
 ## Revisions
 
+- Added `https://www.googleapis.com/auth/script.container.ui` to `appsscript.json` — Google Apps Script requires this scope explicitly to display custom HTML sidebars when explicit `oauthScopes` are defined in the manifest.
+
