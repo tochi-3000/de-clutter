@@ -165,6 +165,55 @@ function runTests() {
     mockGmailSecondary.trashThreads.map(t => t.inTrash)
   );
 
+  // Test 4.4: Granular selective restoration & partial label retention
+  const runId3 = 'RUN-20261023-GRANULAR-001';
+  const labelName3 = `${Config.RUN_LABEL_PREFIX}${runId3}`;
+  const mockGmailGranular = new MockGmailApp();
+  const sessionLabel3 = mockGmailGranular.createLabel(labelName3);
+
+  for (let i = 0; i < 10; i++) {
+    const tid = `t-gran-${i}`;
+    const t = new MockThread(tid, 'store@domain.com', `Order #${i}`);
+    t.labels.push(labelName3);
+    mockGmailGranular.trashThreads.push(t);
+  }
+
+  RollbackManager._mockGmail = mockGmailGranular;
+  flushedLogs = [];
+
+  // Restore 4 specific threads: 0, 2, 4, 6
+  const toRestoreSubset = ['t-gran-0', 't-gran-2', 't-gran-4', 't-gran-6'];
+  const granRes1 = RollbackManager.restoreSpecificThreads(toRestoreSubset, runId3);
+
+  assert('4.4.1: restoreSpecificThreads restores only the 4 selected threads',
+    granRes1.success === true && granRes1.result.restoredCount === 4,
+    granRes1
+  );
+  assert('4.4.2: Restored threads are marked inTrash = false and unlabelled',
+    toRestoreSubset.every(id => {
+      const t = mockGmailGranular.trashThreads.find(th => th.id === id);
+      return t && t.inTrash === false && !t.labels.includes(labelName3);
+    }),
+    mockGmailGranular.trashThreads
+  );
+  assert('4.4.3: Session label is PRESERVED because 6 threads remain in Trash',
+    mockGmailGranular.labels[labelName3] !== undefined && !mockGmailGranular.deletedLabels.includes(labelName3),
+    { labels: mockGmailGranular.labels, deleted: mockGmailGranular.deletedLabels }
+  );
+
+  // Now restore the remaining 6 threads
+  const remainingIds = ['t-gran-1', 't-gran-3', 't-gran-5', 't-gran-7', 't-gran-8', 't-gran-9'];
+  const granRes2 = RollbackManager.restoreSpecificThreads(remainingIds, runId3);
+
+  assert('4.4.4: Restoring remaining 6 threads succeeds',
+    granRes2.success === true && granRes2.result.restoredCount === 6,
+    granRes2
+  );
+  assert('4.4.5: Session label is DELETED now that all threads from run are restored',
+    mockGmailGranular.deletedLabels.includes(labelName3) && !mockGmailGranular.labels[labelName3],
+    mockGmailGranular.deletedLabels
+  );
+
   console.log(`\nResults: ${passed} passed, ${failed} failed.`);
   if (failed > 0) {
     process.exit(1);

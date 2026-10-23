@@ -14,7 +14,8 @@ function onOpen() {
     .addItem('Control Panel', 'showSidebar')
     .addSeparator()
     .addItem('Run Declutter (Manual)', 'menuRunDeclutter')
-    .addItem('Undo Last Run', 'menuUndoLastRun')
+    .addItem('Undo Last Run (All)', 'menuUndoLastRun')
+    .addItem('Restore Selected Rows from Logs', 'menuRestoreSelectedRows')
     .addSeparator()
     .addItem('Setup / Reset Daily Automation', 'menuSetupDailyAutomation')
     .addItem('Refresh QuickStart Guide', 'menuRefreshQuickStart')
@@ -94,6 +95,101 @@ function menuUndoLastRun() {
     } else {
       ui.alert('Undo Alert', result.message || result.error || 'No existing run', ui.ButtonSet.OK);
     }
+  }
+}
+
+/**
+ * Menu action: Restores specific threads selected by the user in the Logs sheet.
+ * Defensively sanitizes row selections, verifies run boundaries, and prevents accidental re-restores.
+ */
+function menuRestoreSelectedRows() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const activeSheet = ss.getActiveSheet();
+
+  // Guard 1: Must be on Logs tab
+  if (activeSheet.getName() !== Config.SHEET_NAMES.LOGS) {
+    ui.alert(
+      'Restore Selected Rows',
+      `Please switch to the "${Config.SHEET_NAMES.LOGS}" tab and select the rows you wish to restore.`,
+      ui.ButtonSet.OK
+    );
+    return;
+  }
+
+  const selection = activeSheet.getActiveRangeList();
+  const ranges = selection ? selection.getRanges() : [activeSheet.getActiveRange()];
+  if (!ranges || ranges.length === 0) {
+    ui.alert('Restore Selected Rows', 'No rows selected.', ui.ButtonSet.OK);
+    return;
+  }
+
+  // Collect unique selected row indices (1-indexed)
+  const selectedRowIndices = new Set();
+  for (const r of ranges) {
+    if (!r) continue;
+    const startRow = r.getRow();
+    const numRows = r.getNumRows();
+    for (let i = 0; i < numRows; i++) {
+      const rowIndex = startRow + i;
+      if (rowIndex > 1) { // Skip header row 1
+        selectedRowIndices.add(rowIndex);
+      }
+    }
+  }
+
+  if (selectedRowIndices.size === 0) {
+    ui.alert('Restore Selected Rows', 'No data rows selected (header row ignored).', ui.ButtonSet.OK);
+    return;
+  }
+
+  // Batch read the required data from the sheet
+  const lastRow = activeSheet.getLastRow();
+  const validRows = Array.from(selectedRowIndices).filter(r => r <= lastRow);
+  if (validRows.length === 0) {
+    ui.alert('Restore Selected Rows', 'Selected rows contain no logged data.', ui.ButtonSet.OK);
+    return;
+  }
+
+  // Extract ThreadID (Col G, idx 7), RunID (Col B, idx 2), Action (Col I, idx 9)
+  const threadIdsToRestore = [];
+  let runId = null;
+
+  for (const rIdx of validRows) {
+    const rowVals = activeSheet.getRange(rIdx, 1, 1, Config.LOGS_HEADERS.length).getValues()[0];
+    const rRunId = rowVals[1];
+    const tid = rowVals[6];
+    const action = rowVals[8];
+
+    if (tid && (action === Config.LOG_ACTION.TRASHED || action === Config.LOG_ACTION.RESTORED)) {
+      threadIdsToRestore.push(String(tid).trim());
+      if (!runId && rRunId) {
+        runId = String(rRunId).trim();
+      }
+    }
+  }
+
+  if (threadIdsToRestore.length === 0) {
+    ui.alert(
+      'Restore Selected Rows',
+      'None of the selected rows contain valid Thread IDs to restore.',
+      ui.ButtonSet.OK
+    );
+    return;
+  }
+
+  const promptMsg = `Restore ${threadIdsToRestore.length} selected thread(s) back to your Inbox?`;
+  const confirm = ui.alert('Confirm Granular Restore', promptMsg, ui.ButtonSet.YES_NO);
+  if (confirm !== ui.Button.YES) {
+    return;
+  }
+
+  const result = RollbackManager.restoreSpecificThreads(threadIdsToRestore, runId);
+  if (result.success) {
+    const data = result.result || result;
+    ui.alert('Restore Completed', data.message || `Restored ${data.restoredCount} thread(s) to Inbox.`, ui.ButtonSet.OK);
+  } else {
+    ui.alert('Restore Failed', result.message || result.error || 'Encountered an issue during restore.', ui.ButtonSet.OK);
   }
 }
 
@@ -192,6 +288,47 @@ function apiUndoLastRun() {
 }
 
 /**
+ * RPC: Retrieves all threads for a specific run (or latest run) for granular review.
+ */
+function apiGetRunThreads(runId) {
+  try {
+    let targetRunId = runId;
+    if (!targetRunId) {
+      const latest = SheetStore.getLatestRunMetadata();
+      targetRunId = latest ? latest.runId : null;
+    }
+    if (!targetRunId) {
+      return { success: true, runId: null, threads: [] };
+    }
+    const threads = SheetStore.getRunThreads(targetRunId);
+    return {
+      success: true,
+      runId: targetRunId,
+      threads: threads
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err.message || String(err)
+    };
+  }
+}
+
+/**
+ * RPC: Selectively restores specific thread IDs from Trash back to Inbox.
+ */
+function apiRestoreSelectedThreads(threadIds, runId) {
+  try {
+    return RollbackManager.restoreSpecificThreads(threadIds, runId);
+  } catch (err) {
+    return {
+      success: false,
+      error: err.message || String(err)
+    };
+  }
+}
+
+/**
  * RPC: Configures the daily 2:00 AM clock trigger.
  */
 function apiSetupAutomation() {
@@ -212,10 +349,13 @@ if (typeof module !== 'undefined' && module.exports) {
     showSidebar,
     runDeclutterAutomated,
     menuRefreshQuickStart,
+    menuRestoreSelectedRows,
     apiGetEngineStatus,
     apiSaveRule,
     apiRunDeclutter,
     apiUndoLastRun,
+    apiGetRunThreads,
+    apiRestoreSelectedThreads,
     apiSetupAutomation
   };
 }

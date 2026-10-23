@@ -331,6 +331,59 @@ var SheetStore = (function () {
     return Array.from(uniqueIds);
   }
 
+  /**
+   * Retrieves all threads logged for a specific RunID with metadata and restoration status.
+   *
+   * @param {string} runId
+   * @returns {Array<{ threadId: string, sender: string, subject: string, receivedDate: string, isRestoredInLog: boolean }>}
+   */
+  function getRunThreads(runId) {
+    if (!runId) return [];
+
+    const _Config = getConfig();
+    const ss = getSpreadsheet();
+    if (!ss) return [];
+
+    const logsSheet = ss.getSheetByName(_Config.SHEET_NAMES.LOGS);
+    if (!logsSheet) return [];
+
+    const lastRow = logsSheet.getLastRow();
+    if (lastRow <= 1) return [];
+
+    const numRows = lastRow - 1;
+    // Batch read all log rows
+    const allRows = logsSheet.getRange(2, 1, numRows, _Config.LOGS_HEADERS.length).getValues();
+
+    // Map restored thread IDs for this run
+    const restoredSet = new Set();
+    for (let i = 0; i < numRows; i++) {
+      const row = allRows[i];
+      if (row[1] === runId && row[8] === _Config.LOG_ACTION.RESTORED && row[6]) {
+        restoredSet.add(String(row[6]).trim());
+      }
+    }
+
+    // Collect unique trashed threads
+    const threadMap = new Map();
+    for (let i = 0; i < numRows; i++) {
+      const row = allRows[i];
+      if (row[1] === runId && (row[8] === _Config.LOG_ACTION.TRASHED || row[8] === _Config.LOG_ACTION.RESTORED) && row[6]) {
+        const tid = String(row[6]).trim();
+        if (!threadMap.has(tid)) {
+          threadMap.set(tid, {
+            threadId: tid,
+            sender: String(row[3] || ''),
+            subject: String(row[4] || '(No Subject)'),
+            receivedDate: String(row[5] || ''),
+            isRestoredInLog: restoredSet.has(tid)
+          });
+        }
+      }
+    }
+
+    return Array.from(threadMap.values());
+  }
+
   return {
     initSheets: initSheets,
     getActiveRules: getActiveRules,
@@ -339,6 +392,7 @@ var SheetStore = (function () {
     pruneLogsIfNeeded: pruneLogsIfNeeded,
     getLatestRunMetadata: getLatestRunMetadata,
     getThreadIdsForRun: getThreadIdsForRun,
+    getRunThreads: getRunThreads,
     _mockSpreadsheet: null // Test hook
   };
 })();

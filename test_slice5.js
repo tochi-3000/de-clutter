@@ -41,6 +41,12 @@ function runTests() {
     'latestRunId',
     'latestThreadCount',
     'btnUndo',
+    'btnToggleReview',
+    'reviewDrawer',
+    'inputFilterThreads',
+    'chkSelectAll',
+    'threadListContainer',
+    'btnRestoreSelected',
     'banner'
   ];
   const allIdsPresent = requiredIds.every(id => sidebarContent.includes(`id="${id}"`));
@@ -68,6 +74,9 @@ function runTests() {
     typeof Code.apiSaveRule === 'function' &&
     typeof Code.apiRunDeclutter === 'function' &&
     typeof Code.apiUndoLastRun === 'function' &&
+    typeof Code.apiGetRunThreads === 'function' &&
+    typeof Code.apiRestoreSelectedThreads === 'function' &&
+    typeof Code.menuRestoreSelectedRows === 'function' &&
     typeof Code.apiSetupAutomation === 'function',
     Object.keys(Code)
   );

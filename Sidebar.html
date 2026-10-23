@@ -260,11 +260,11 @@
     </div>
   </div>
 
-  <!-- CARD 3: DISASTER RECOVERY (UNDO) -->
+  <!-- CARD 3: DISASTER RECOVERY (UNDO & SELECTIVE RESTORE) -->
   <div class="card recovery-card">
     <div class="card-title" style="color: var(--accent-red);">
       <span>Disaster Recovery</span>
-      <span class="pill pill-red">1-CLICK UNDO</span>
+      <span class="pill pill-red">RECOVERY</span>
     </div>
     <div class="stat-row">
       <span>Latest Run:</span>
@@ -274,7 +274,39 @@
       <span>Affected Threads:</span>
       <span id="latestThreadCount" class="stat-val">0</span>
     </div>
-    <button id="btnUndo" class="btn btn-danger" style="margin-top: 6px;" onclick="handleUndo()">Undo Last Run</button>
+    <div class="btn-row" style="margin-top: 6px;">
+      <button id="btnToggleReview" class="btn btn-outline" style="flex:1;" onclick="toggleReviewDrawer()">Review & Pick</button>
+      <button id="btnUndo" class="btn btn-danger" style="flex:1;" onclick="handleUndo()">Restore All</button>
+    </div>
+
+    <!-- EXPANDABLE GRANULAR REVIEW DRAWER -->
+    <div id="reviewDrawer" style="display:none; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+        <span style="font-weight:700; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Pick Mails to Restore</span>
+        <span id="reviewCountBadge" class="pill pill-amber">0 Selected</span>
+      </div>
+
+      <!-- Quick Filter -->
+      <div class="form-group" style="margin-bottom: 6px;">
+        <input type="text" id="inputFilterThreads" placeholder="Filter by sender or subject..." oninput="handleFilterThreads()" style="font-size: 11px; padding: 4px 6px;">
+      </div>
+
+      <!-- Select All Row -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px; font-size: 11px;">
+        <label class="checkbox-row" style="margin-bottom:0;">
+          <input type="checkbox" id="chkSelectAll" onchange="handleSelectAllChange(this.checked)">
+          <span>Select All Filtered</span>
+        </label>
+        <span id="filteredTotalCount" style="color:var(--text-muted);">0 emails</span>
+      </div>
+
+      <!-- Scrollable Thread List Container -->
+      <div id="threadListContainer" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; padding: 4px; background: var(--input-bg); margin-bottom: 8px;">
+        <div style="text-align:center; padding: 12px; color: var(--text-muted); font-size:11px;">Click "Review & Pick" to load emails...</div>
+      </div>
+
+      <button id="btnRestoreSelected" class="btn btn-primary" onclick="handleRestoreSelected()" disabled>Restore Selected (0)</button>
+    </div>
   </div>
 
   <!-- CARD 4: PRIVACY & VERIFICATION EXPLAINER -->
@@ -307,6 +339,18 @@
               resolve({ success: true, result: { runId: 'RUN-DEMO-002', totalMatched: 14, totalTrashed: 14, durationMs: 1200 } });
             } else if (fnName === 'apiUndoLastRun') {
               resolve({ success: true, result: { restoredCount: 14, message: 'Successfully restored 14 threads to Inbox.' } });
+            } else if (fnName === 'apiGetRunThreads') {
+              resolve({
+                success: true,
+                runId: 'RUN-DEMO-001',
+                threads: [
+                  { threadId: 't-demo-1', sender: 'Promo Store <deals@store.com>', subject: 'Save 20% Today Only!', receivedDate: '2026-10-20T10:00:00Z', isRestoredInLog: false },
+                  { threadId: 't-demo-2', sender: 'Daniel Scott <daniel@cars.com>', subject: 'Your next car is waiting', receivedDate: '2026-10-18T09:30:00Z', isRestoredInLog: false }
+                ]
+              });
+            } else if (fnName === 'apiRestoreSelectedThreads') {
+              const count = (args[0] && args[0].length) || 1;
+              resolve({ success: true, result: { restoredCount: count, message: `Successfully restored ${count} thread(s) to Inbox.` } });
             } else {
               resolve({ success: true });
             }
@@ -472,12 +516,167 @@
           const d = res.result || res;
           showBanner(d.message || `Successfully restored ${d.restoredCount} threads to Inbox.`, 'success');
           await loadStatus();
+          if (isReviewDrawerOpen) {
+            await loadRunThreads();
+          }
         } else {
           showBanner(res.message || res.error || 'No existing run', 'danger');
         }
       } catch (err) {
         setBusy(false);
         showBanner(err.message || 'Undo failed.', 'danger');
+      }
+    }
+
+    // --- Granular Review & Selective Restore Handlers ---
+    let currentRunThreads = [];
+    let isReviewDrawerOpen = false;
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function formatDate(isoStr) {
+      if (!isoStr) return '';
+      try {
+        const d = new Date(isoStr);
+        return isNaN(d.getTime()) ? isoStr : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      } catch (e) {
+        return isoStr;
+      }
+    }
+
+    async function toggleReviewDrawer() {
+      const drawer = document.getElementById('reviewDrawer');
+      isReviewDrawerOpen = !isReviewDrawerOpen;
+      drawer.style.display = isReviewDrawerOpen ? 'block' : 'none';
+      document.getElementById('btnToggleReview').textContent = isReviewDrawerOpen ? 'Close Review' : 'Review & Pick';
+
+      if (isReviewDrawerOpen) {
+        await loadRunThreads();
+      }
+    }
+
+    async function loadRunThreads() {
+      const container = document.getElementById('threadListContainer');
+      container.innerHTML = '<div style="text-align:center; padding: 12px; color: var(--text-muted); font-size:11px;">Loading trashed emails...</div>';
+
+      try {
+        const res = await runRpc('apiGetRunThreads');
+        if (res.success && res.threads) {
+          currentRunThreads = res.threads;
+          renderThreadList();
+        } else {
+          container.innerHTML = `<div style="text-align:center; padding: 12px; color: var(--accent-red); font-size:11px;">${escapeHtml(res.error || 'Failed to load emails.')}</div>`;
+        }
+      } catch (err) {
+        container.innerHTML = `<div style="text-align:center; padding: 12px; color: var(--accent-red); font-size:11px;">${escapeHtml(err.message || 'Error loading emails.')}</div>`;
+      }
+    }
+
+    function renderThreadList() {
+      const container = document.getElementById('threadListContainer');
+      const filter = (document.getElementById('inputFilterThreads').value || '').toLowerCase().trim();
+
+      const filtered = currentRunThreads.filter(t => {
+        if (!filter) return true;
+        return (t.sender && t.sender.toLowerCase().includes(filter)) ||
+               (t.subject && t.subject.toLowerCase().includes(filter));
+      });
+
+      document.getElementById('filteredTotalCount').textContent = `${filtered.length} email(s)`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding: 12px; color: var(--text-muted); font-size:11px;">No matching emails found for this run.</div>';
+        updateSelectedCount();
+        return;
+      }
+
+      let html = '';
+      for (const t of filtered) {
+        const restoredBadge = t.isRestoredInLog
+          ? '<span class="pill pill-green" style="font-size:9px; padding:1px 4px; margin-left:4px;">Restored</span>'
+          : '';
+
+        html += `
+          <div class="thread-item-row" style="display:flex; align-items:flex-start; gap:6px; padding:6px; border-bottom:1px solid var(--border); font-size:11px;">
+            <input type="checkbox" class="thread-chk" value="${escapeHtml(t.threadId)}" onchange="updateSelectedCount()" style="margin-top:2px;">
+            <div style="flex:1; min-width:0;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px;" title="${escapeHtml(t.sender)}">${escapeHtml(t.sender)}</span>
+                <span style="color:var(--text-muted); font-size:10px;">${escapeHtml(formatDate(t.receivedDate))}</span>
+              </div>
+              <div style="color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(t.subject)}">
+                ${escapeHtml(t.subject)} ${restoredBadge}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+      updateSelectedCount();
+    }
+
+    function handleFilterThreads() {
+      renderThreadList();
+    }
+
+    function handleSelectAllChange(isChecked) {
+      const checkboxes = document.querySelectorAll('.thread-chk');
+      checkboxes.forEach(chk => { chk.checked = isChecked; });
+      updateSelectedCount();
+    }
+
+    function getSelectedThreadIds() {
+      const checkboxes = document.querySelectorAll('.thread-chk:checked');
+      return Array.from(checkboxes).map(chk => chk.value);
+    }
+
+    function updateSelectedCount() {
+      const selected = getSelectedThreadIds();
+      const count = selected.length;
+      document.getElementById('reviewCountBadge').textContent = `${count} Selected`;
+      const btnRestore = document.getElementById('btnRestoreSelected');
+      btnRestore.textContent = `Restore Selected (${count})`;
+      btnRestore.disabled = (count === 0);
+
+      // Sync Select All checkbox state
+      const allCheckboxes = document.querySelectorAll('.thread-chk');
+      const chkSelectAll = document.getElementById('chkSelectAll');
+      if (allCheckboxes.length > 0 && count === allCheckboxes.length) {
+        chkSelectAll.checked = true;
+        chkSelectAll.indeterminate = false;
+      } else if (count > 0 && count < allCheckboxes.length) {
+        chkSelectAll.checked = false;
+        chkSelectAll.indeterminate = true;
+      } else {
+        chkSelectAll.checked = false;
+        chkSelectAll.indeterminate = false;
+      }
+    }
+
+    async function handleRestoreSelected() {
+      const selectedIds = getSelectedThreadIds();
+      if (selectedIds.length === 0) return;
+
+      setBusy(true, `Restoring ${selectedIds.length} selected thread(s)...`);
+      try {
+        const res = await runRpc('apiRestoreSelectedThreads', selectedIds);
+        setBusy(false);
+        if (res.success) {
+          const d = res.result || res;
+          showBanner(d.message || `Successfully restored ${d.restoredCount} thread(s) to Inbox.`, 'success');
+          await loadStatus();
+          await loadRunThreads();
+        } else {
+          showBanner(res.message || res.error || 'Restore failed.', 'danger');
+        }
+      } catch (err) {
+        setBusy(false);
+        showBanner(err.message || 'Restore failed.', 'danger');
       }
     }
 
