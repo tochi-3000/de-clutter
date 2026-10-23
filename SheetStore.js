@@ -296,6 +296,41 @@ var SheetStore = (function () {
     };
   }
 
+  /**
+   * Retrieves unique Gmail thread IDs recorded in the Logs sheet for a specific RunID.
+   * Provides a defensive secondary recovery index if Gmail session labels are deleted, missing, or unindexed.
+   *
+   * @param {string} runId
+   * @returns {string[]}
+   */
+  function getThreadIdsForRun(runId) {
+    if (!runId) return [];
+
+    const _Config = getConfig();
+    const ss = getSpreadsheet();
+    if (!ss) return [];
+
+    const logsSheet = ss.getSheetByName(_Config.SHEET_NAMES.LOGS);
+    if (!logsSheet) return [];
+
+    const lastRow = logsSheet.getLastRow();
+    if (lastRow <= 1) return [];
+
+    const numRows = lastRow - 1;
+    // Batch read RunID (Col B, index 2) and ThreadID (Col G, index 7)
+    const runIds = logsSheet.getRange(2, 2, numRows, 1).getValues();
+    const threadIds = logsSheet.getRange(2, 7, numRows, 1).getValues();
+
+    const uniqueIds = new Set();
+    for (let i = 0; i < numRows; i++) {
+      if (runIds[i] && runIds[i][0] === runId && threadIds[i] && threadIds[i][0]) {
+        uniqueIds.add(String(threadIds[i][0]).trim());
+      }
+    }
+
+    return Array.from(uniqueIds);
+  }
+
   return {
     initSheets: initSheets,
     getActiveRules: getActiveRules,
@@ -303,6 +338,7 @@ var SheetStore = (function () {
     flushLogBuffer: flushLogBuffer,
     pruneLogsIfNeeded: pruneLogsIfNeeded,
     getLatestRunMetadata: getLatestRunMetadata,
+    getThreadIdsForRun: getThreadIdsForRun,
     _mockSpreadsheet: null // Test hook
   };
 })();

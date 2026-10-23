@@ -40,6 +40,8 @@ function runTests() {
     }
     getId() { return this.id; }
     getMessages() { return this.messages; }
+    isInTrash() { return this.inTrash; }
+    moveToInbox() { this.inTrash = false; }
   }
 
   class MockGmailApp {
@@ -68,12 +70,15 @@ function runTests() {
       this.deletedLabels.push(label.name);
       delete this.labels[label.name];
     }
-    moveThreadsFromTrash(threads) {
+    moveThreadsToInbox(threads) {
       this.restoredBatches.push([...threads]);
       threads.forEach(t => t.inTrash = false);
     }
+    getThreadById(id) {
+      return this.trashThreads.find(t => t.getId() === id) || null;
+    }
     search(query, start, max) {
-      return this.trashThreads.filter(t => t.inTrash).slice(start, start + max);
+      return this.trashThreads.filter(t => t.inTrash && t.labels.some(l => query.includes(l))).slice(start, start + max);
     }
   }
 
@@ -130,6 +135,34 @@ function runTests() {
   assert('4.2.5: Audit logs record RESTORED action for all threads',
     flushedLogs.length === 65 && flushedLogs[0][8] === 'RESTORED' && flushedLogs[0][2] === 'ROLLBACK',
     flushedLogs[0]
+  );
+
+  // Test 4.3: Secondary Log-based fallback recovery when session label is deleted/missing
+  const runId2 = 'RUN-20261023-STRANDED-001';
+  const mockGmailSecondary = new MockGmailApp();
+  // Create 10 threads in trash WITHOUT any session label attached
+  const strandedThreadIds = [];
+  for (let i = 0; i < 10; i++) {
+    const tid = `t-stranded-${i}`;
+    strandedThreadIds.push(tid);
+    const t = new MockThread(tid, 'daniel@marketing.com', `Stranded #${i}`);
+    t.labels = []; // No session label!
+    mockGmailSecondary.trashThreads.push(t);
+  }
+
+  RollbackManager._mockGmail = mockGmailSecondary;
+  SheetStore.getLatestRunMetadata = () => ({ runId: runId2 });
+  SheetStore.getThreadIdsForRun = (rId) => (rId === runId2 ? strandedThreadIds : []);
+  flushedLogs = [];
+
+  const secondaryRes = RollbackManager.undoLastRun(runId2);
+  assert('4.3.1: Secondary recovery restores threads from Logs when session label is missing',
+    secondaryRes.success === true && secondaryRes.result.restoredCount === 10,
+    secondaryRes
+  );
+  assert('4.3.2: Secondary recovery marks stranded threads inTrash = false',
+    mockGmailSecondary.trashThreads.every(t => t.inTrash === false),
+    mockGmailSecondary.trashThreads.map(t => t.inTrash)
   );
 
   console.log(`\nResults: ${passed} passed, ${failed} failed.`);

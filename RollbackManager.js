@@ -59,11 +59,36 @@ var RollbackManager = (function () {
       }
 
       const labelName = `${_Config.RUN_LABEL_PREFIX}${runId}`;
-      const sessionLabel = gmail.getUserLabelByName(labelName);
+      const sessionLabel = gmail.getUserLabelByName ? gmail.getUserLabelByName(labelName) : null;
 
-      // Search trash for threads tagged with this run label
+      // 1. Primary lookup: Search trash for threads tagged with this run label
       const trashQuery = `in:trash label:"${labelName}"`;
-      const threads = gmail.search(trashQuery, 0, 500) || [];
+      let threads = (gmail.search ? gmail.search(trashQuery, 0, 500) : []) || [];
+
+      // 2. Secondary defensive fallback: If session label is deleted, missing, or unindexed,
+      // recover threads directly via immutable ThreadIDs recorded in the Logs sheet
+      if (threads.length === 0 && _SheetStore.getThreadIdsForRun && gmail.getThreadById) {
+        const loggedThreadIds = _SheetStore.getThreadIdsForRun(runId);
+        if (loggedThreadIds && loggedThreadIds.length > 0) {
+          const rescuedThreads = [];
+          for (const tid of loggedThreadIds) {
+            try {
+              const thread = gmail.getThreadById(tid);
+              if (thread) {
+                const inTrash = (typeof thread.isInTrash === 'function') ? thread.isInTrash() : true;
+                if (inTrash) {
+                  rescuedThreads.push(thread);
+                }
+              }
+            } catch (inspectErr) {
+              // Thread may have been permanently deleted or is inaccessible
+            }
+          }
+          if (rescuedThreads.length > 0) {
+            threads = rescuedThreads;
+          }
+        }
+      }
 
       if (threads.length === 0) {
         // Clean up empty label if it exists
@@ -89,12 +114,30 @@ var RollbackManager = (function () {
       for (let i = 0; i < threads.length; i += _Config.BATCH_TRASH_SIZE) {
         const batch = threads.slice(i, i + _Config.BATCH_TRASH_SIZE);
 
-        // Move threads out of trash back into inbox
-        if (gmail.moveThreadsFromTrash) {
-          gmail.moveThreadsFromTrash(batch);
+        // Production Safeguard: Move threads out of trash back into inbox using the real GmailApp API
+        try {
+          if (gmail.moveThreadsToInbox) {
+            gmail.moveThreadsToInbox(batch);
+          } else {
+            let movedAny = false;
+            for (const thread of batch) {
+              if (thread && thread.moveToInbox) {
+                thread.moveToInbox();
+                movedAny = true;
+              }
+            }
+            if (!movedAny && batch.length > 0) {
+              throw new Error('Gmail service does not support moveThreadsToInbox or thread.moveToInbox.');
+            }
+          }
+        } catch (moveErr) {
+          if (typeof Logger !== 'undefined') {
+            Logger.log(`[RollbackManager] Failed to restore thread batch: ${moveErr.message || moveErr}`);
+          }
+          throw new Error(`Failed to restore threads to Inbox: ${moveErr.message || moveErr}`);
         }
 
-        // Remove the session label
+        // Only remove session label AFTER successful restoration to Inbox
         if (sessionLabel && sessionLabel.removeFromThreads) {
           try {
             sessionLabel.removeFromThreads(batch);
