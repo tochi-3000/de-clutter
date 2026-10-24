@@ -10,7 +10,7 @@
  */
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
-  ui.createMenu('Declutter')
+  ui.createMenu('🚀 Declutter')
     .addItem('Control Panel', 'showSidebar')
     .addSeparator()
     .addItem('Run Declutter (Manual)', 'menuRunDeclutter')

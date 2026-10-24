@@ -59,31 +59,62 @@ var SheetStore = (function () {
     if (!qsSheet) {
       qsSheet = ss.insertSheet(_Config.SHEET_NAMES.QUICKSTART);
     }
-    // Populate or refresh QuickStart guide content if missing the Zero-Custody Privacy guide
+    // Populate or refresh QuickStart guide content if missing the updated guide
     const headerVal = qsSheet.getLastRow() > 0 ? String(qsSheet.getRange(1, 1).getValue() || '') : '';
-    if (!headerVal.includes('Zero-Custody Privacy')) {
+    if (!headerVal.includes('Automated Gmail Cleaner')) {
       if (qsSheet.clear) qsSheet.clear();
-      qsSheet.appendRow(['Declutter — Zero-Custody Privacy & Onboarding Guide']);
+      qsSheet.appendRow(['Declutter — Automated Gmail Cleaner & Zero-Custody Privacy Guide']);
       qsSheet.appendRow(['']);
+
+      // SECTION 1: VALUE PROPOSITION & BENEFITS
+      qsSheet.appendRow(['🌟 WHAT IS DECLUTTER?']);
+      qsSheet.appendRow(['Declutter is your personal, automated inbox housekeeper that runs 100% inside your Google account.']);
+      qsSheet.appendRow(['It automatically finds and sweeps away promotional junk, stale newsletters, and marketing clutter based on custom rules you control.']);
+      qsSheet.appendRow(['']);
+      qsSheet.appendRow(['WHY DECLUTTER IS BETTER THAN COMMERCIAL CLEANERS:']);
+      qsSheet.appendRow(['• 🛡️ 100% Private (Zero-Custody): Your emails, login tokens, and credentials NEVER leave your Google account. No external servers or third-party databases.']);
+      qsSheet.appendRow(['• ⚡ Automated Daily Sweeps: Cleans your mailbox on autopilot every morning at 2:00 AM according to your custom retention days.']);
+      qsSheet.appendRow(['• 🔄 100% Reversible (Zero Risk): Emails move to Gmail Trash (never permanently deleted) and remain recoverable for 30 days. Restore all or pick specific emails with 1 click.']);
+      qsSheet.appendRow(['• ⭐️ Starred Email Protection: Starred and important emails are strictly protected and never touched.']);
+      qsSheet.appendRow(['']);
+
+      // SECTION 2: NAVIGATION & BUTTON LOCATION (ZERO AMBIGUITY)
+      qsSheet.appendRow(['📍 HOW TO OPEN THE CONTROL PANEL (WHERE TO CLICK):']);
+      qsSheet.appendRow(['Look directly above this sheet at the top Google Sheets menu bar (next to File, Edit, View, Insert, ..., Help):']);
+      qsSheet.appendRow(['👉 Click the "🚀 Declutter" menu item  ➔  Select "Control Panel" from the dropdown list.']);
+      qsSheet.appendRow(['(Alternatively, if you are on the Master Template, click the floating "🚀 OPEN DECLUTTER CONTROL PANEL" button).']);
+      qsSheet.appendRow(['This opens the Declutter Control Panel sidebar on the right side of your screen.']);
+      qsSheet.appendRow(['']);
+
+      // SECTION 3: WHY GOOGLE SHOWS "GOOGLE HASN'T VERIFIED THIS APP"
       qsSheet.appendRow(['🔒 WHY GOOGLE SHOWS "GOOGLE HASN\'T VERIFIED THIS APP":']);
-      qsSheet.appendRow(['• 100% Private & Container-Bound: Declutter executes entirely inside YOUR Google account.']);
-      qsSheet.appendRow(['• Zero Token Custody: No external servers or third-party databases ever touch your emails or tokens.']);
-      qsSheet.appendRow(['• Bypassing the $50k Audit: Google mandates a $15,000–$75,000 annual third-party audit (CASA) to remove this screen for commercial SaaS.']);
-      qsSheet.appendRow(['• Independent & Verifiable: As a personal script, you get enterprise-grade mailbox cleanup without corporate tracking.']);
+      qsSheet.appendRow(['When you first launch Declutter, Google will display a security warning saying "Google hasn\'t verified this app".']);
+      qsSheet.appendRow(['HERE IS EXACTLY WHY THIS APPEARS AND WHY YOU HAVE ABSOLUTELY NOTHING TO WORRY ABOUT:']);
+      qsSheet.appendRow(['• The $50k Audit Barrier: Google requires commercial SaaS companies to pay $15,000–$75,000 annually for an enterprise CASA audit to remove this screen.']);
+      qsSheet.appendRow(['• Why commercial apps pay it: Commercial inbox cleaners (like Unroll.me or Cleanfox) pay for audits because they host your emails on external servers and monetize user purchase receipts for market research.']);
+      qsSheet.appendRow(['• Why Declutter is safer: Declutter is NOT a third-party SaaS. It is an open-source, personal script that lives exclusively inside YOUR Google spreadsheet.']);
+      qsSheet.appendRow(['• Zero middleman: There is NO outside company, NO server, NO database, and NO developer who can ever access your emails. You are simply authorizing YOUR OWN private spreadsheet to organize YOUR OWN Gmail account.']);
+      qsSheet.appendRow(['• Google\'s "(unsafe)" label: Google automatically attaches the word "(unsafe)" to ANY personal or unverified script because Google hasn\'t audited a corporate entity. The entire source code is 100% viewable and auditable under Extensions > Apps Script.']);
       qsSheet.appendRow(['']);
-      qsSheet.appendRow(['🚀 HOW TO COMPLETE 1-TIME AUTHORIZATION:']);
-      qsSheet.appendRow(['1. Click menu "Declutter > Control Panel" (or "Setup / Reset Daily Automation").']);
+
+      // SECTION 4: 1-TIME AUTHORIZATION WALKTHROUGH
+      qsSheet.appendRow(['🚀 HOW TO COMPLETE 1-TIME AUTHORIZATION (Takes 15 seconds):']);
+      qsSheet.appendRow(['1. Click the top menu: "🚀 Declutter"  ➔  "Control Panel".']);
       qsSheet.appendRow(['2. When Google displays "Authorization Required", click "Continue".']);
-      qsSheet.appendRow(['3. On the "Google hasn’t verified this app" warning, click "Advanced" (bottom-left link).']);
-      qsSheet.appendRow(['4. Click "Go to Declutter Master Template (unsafe)" and then click "Allow".']);
+      qsSheet.appendRow(['3. Choose your Google account.']);
+      qsSheet.appendRow(['4. On the "Google hasn’t verified this app" warning, click "Advanced" (small link at the bottom-left).']);
+      qsSheet.appendRow(['5. Click "Go to Declutter Master Template (unsafe)", then click "Allow".']);
+      qsSheet.appendRow(['(You only do this once on your first run. You will never need to authorize it again).']);
       qsSheet.appendRow(['']);
+
+      // SECTION 5: HOW TO USE DECLUTTER
       qsSheet.appendRow(['⚡ HOW TO USE DECLUTTER:']);
-      qsSheet.appendRow(['1. Open the sidebar via "Declutter > Control Panel".']);
-      qsSheet.appendRow(['2. In the "Quick Rule Builder", enter a sender pattern and optional quoted phrases (e.g. "otp" OR "code").']);
-      qsSheet.appendRow(['3. Click "Test (Dry Run)" — simulated matches will appear in the "Logs" tab without modifying any emails.']);
-      qsSheet.appendRow(['4. Click "Run Declutter Now" for live cleanup (emails move to Gmail Trash and remain recoverable for 30 days).']);
-      qsSheet.appendRow(['5. Accidental deletion? Click "Undo Last Run" in the sidebar to restore all threads back to your Inbox instantly.']);
-      qsSheet.appendRow(['6. Click "Declutter > Setup / Reset Daily Automation" to enable hands-free daily cleanups at 2:00 AM.']);
+      qsSheet.appendRow(['1. Open the sidebar via "🚀 Declutter"  ➔  "Control Panel".']);
+      qsSheet.appendRow(['2. In the "Quick Rule Builder", enter a sender pattern (e.g. @marketing.store.com) and optional keywords.']);
+      qsSheet.appendRow(['3. Click "Test (Dry Run)" — simulated matches will appear in the "Logs" tab with zero changes to your actual emails.']);
+      qsSheet.appendRow(['4. Click "Run Declutter Now" for live cleanup — matching emails move to Gmail Trash and remain recoverable for 30 days.']);
+      qsSheet.appendRow(['5. Accidental deletion? Open "Disaster Recovery" in the sidebar to "Restore All" or click "Review & Pick" to selectively restore specific emails.']);
+      qsSheet.appendRow(['6. Turn on Hands-Free Automation: Click "🚀 Declutter"  ➔  "Setup / Reset Daily Automation" to clean up automatically at 2:00 AM daily.']);
       qsSheet.setFrozenRows(1);
     }
 
