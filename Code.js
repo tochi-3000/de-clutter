@@ -20,6 +20,20 @@ function onOpen() {
     .addItem('Setup / Reset Daily Automation', 'menuSetupDailyAutomation')
     .addItem('Refresh QuickStart Guide', 'menuRefreshQuickStart')
     .addToUi();
+
+  // Automatically enforce tab hygiene and focus the QuickStart onboarding guide
+  try {
+    SheetStore.initSheets();
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss && ss.getSheetByName && ss.setActiveSheet) {
+      const qsSheet = ss.getSheetByName(Config.SHEET_NAMES.QUICKSTART);
+      if (qsSheet) {
+        ss.setActiveSheet(qsSheet);
+      }
+    }
+  } catch (e) {
+    // Simple trigger error safety: never break menu rendering if sheet activation encounters sandbox limits
+  }
 }
 
 /**
@@ -217,7 +231,13 @@ function menuRefreshQuickStart() {
     qs.clear();
   }
   SheetStore.initSheets();
-  ui.alert('QuickStart Guide', 'The QuickStart & Privacy Guide has been refreshed with the latest documentation.', ui.ButtonSet.OK);
+  if (ss.setActiveSheet) {
+    const qsSheet = ss.getSheetByName(Config.SHEET_NAMES.QUICKSTART);
+    if (qsSheet) {
+      ss.setActiveSheet(qsSheet);
+    }
+  }
+  ui.alert('QuickStart Guide', 'The QuickStart & Privacy Guide has been refreshed, positioned first, and set as the active tab.', ui.ButtonSet.OK);
 }
 
 // ============================================================================

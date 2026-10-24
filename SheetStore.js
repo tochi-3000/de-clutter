@@ -86,6 +86,45 @@ var SheetStore = (function () {
       qsSheet.appendRow(['6. Click "Declutter > Setup / Reset Daily Automation" to enable hands-free daily cleanups at 2:00 AM.']);
       qsSheet.setFrozenRows(1);
     }
+
+    // 4. Tab Hygiene: Remove empty default "Sheet1" if present
+    const defaultSheet = ss.getSheetByName('Sheet1');
+    if (defaultSheet && ss.deleteSheet) {
+      const isDefaultEmpty = (typeof defaultSheet.getLastRow === 'function' ? defaultSheet.getLastRow() : 0) === 0;
+      const totalSheets = ss.getSheets ? ss.getSheets().length : 2;
+      if (isDefaultEmpty && totalSheets > 1) {
+        try {
+          ss.deleteSheet(defaultSheet);
+        } catch (e) {
+          // Ignore deletion error in restricted contexts
+        }
+      }
+    }
+
+    // 5. UX Ordering: Ensure QuickStart is the first (leftmost) tab and actively focused
+    if (ss.setActiveSheet) {
+      try {
+        if (ss.moveActiveSheet) {
+          if (qsSheet) {
+            ss.setActiveSheet(qsSheet);
+            ss.moveActiveSheet(1);
+          }
+          if (rulesSheet) {
+            ss.setActiveSheet(rulesSheet);
+            ss.moveActiveSheet(2);
+          }
+          if (logsSheet) {
+            ss.setActiveSheet(logsSheet);
+            ss.moveActiveSheet(3);
+          }
+        }
+        if (qsSheet) {
+          ss.setActiveSheet(qsSheet);
+        }
+      } catch (orderErr) {
+        // Ignore ordering errors in mock or restricted environments
+      }
+    }
   }
 
   /**

@@ -103,6 +103,8 @@ function runTests() {
   class MockSpreadsheet {
     constructor() {
       this.sheets = {};
+      this.activeSheet = null;
+      this.orderedSheets = [];
     }
     getSheetByName(name) {
       return this.sheets[name] || null;
@@ -110,21 +112,51 @@ function runTests() {
     insertSheet(name) {
       const s = new MockSheet(name);
       this.sheets[name] = s;
+      this.orderedSheets.push(s);
       return s;
+    }
+    getSheets() {
+      return Object.values(this.sheets);
+    }
+    deleteSheet(sheet) {
+      delete this.sheets[sheet.name];
+      this.orderedSheets = this.orderedSheets.filter(s => s.name !== sheet.name);
+    }
+    setActiveSheet(sheet) {
+      this.activeSheet = sheet;
+    }
+    moveActiveSheet(pos) {
+      if (!this.activeSheet) return;
+      const idx = this.orderedSheets.findIndex(s => s.name === this.activeSheet.name);
+      if (idx !== -1) {
+        this.orderedSheets.splice(idx, 1);
+        this.orderedSheets.splice(pos - 1, 0, this.activeSheet);
+      }
     }
   }
 
   const mockSs = new MockSpreadsheet();
+  // Simulate default empty Sheet1 created by Google Sheets upon workbook initialization
+  const defaultSheet1 = mockSs.insertSheet('Sheet1');
   SheetStore._mockSpreadsheet = mockSs;
 
-  // Test 2.1: Initialization of default sheets
+  // Test 2.1: Initialization of default sheets & tab hygiene
   SheetStore.initSheets();
   const rulesS = mockSs.getSheetByName(Config.SHEET_NAMES.RULES);
   const logsS = mockSs.getSheetByName(Config.SHEET_NAMES.LOGS);
   const qsS = mockSs.getSheetByName(Config.SHEET_NAMES.QUICKSTART);
-  assert('2.1: SheetStore initializes Rules, Logs, and QuickStart sheets',
+  assert('2.1.1: SheetStore initializes Rules, Logs, and QuickStart sheets',
     rulesS !== null && logsS !== null && qsS !== null && rulesS.rows.length === 2,
     { rulesCount: rulesS ? rulesS.rows.length : 0 }
+  );
+  assert('2.1.2: Empty default Sheet1 is automatically deleted',
+    mockSs.getSheetByName('Sheet1') === null,
+    mockSs.getSheets().map(s => s.name)
+  );
+  assert('2.1.3: QuickStart is positioned as tab #1 and set as the active sheet',
+    mockSs.orderedSheets[0] && mockSs.orderedSheets[0].name === Config.SHEET_NAMES.QUICKSTART &&
+    mockSs.activeSheet && mockSs.activeSheet.name === Config.SHEET_NAMES.QUICKSTART,
+    { firstTab: mockSs.orderedSheets[0] ? mockSs.orderedSheets[0].name : null, active: mockSs.activeSheet ? mockSs.activeSheet.name : null }
   );
 
   // Test 2.2: Active rule retrieval and validation
